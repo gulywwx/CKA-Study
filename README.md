@@ -173,7 +173,7 @@ export AWS_SECRET_ACCESS_KEY=
 vim terraform.tfvars
 
 # Initialize the directory
-terraform init -plugin-dir=plugins
+terraform init
 
 # Format and validate the configuration
 terraform fmt
