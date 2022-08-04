@@ -173,15 +173,15 @@ export AWS_SECRET_ACCESS_KEY=
 vim terraform.tfvars
 
 # Initialize the directory
-terraform init
+terraform init -plugin-dir=plugins
 
 # Format and validate the configuration
 terraform fmt
 terraform validate
 
 # Create infrastructure
-terraform plan
-terraform apply
+terraform plan -var-file=terraform.tfvars -out=terraform.tfout
+terraform apply -input=false -auto-approve=true -lock=true "terraform.tfout"
 ```
 ## Tips:
 
