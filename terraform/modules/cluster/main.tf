@@ -162,12 +162,12 @@ resource "aws_instance" "master" {
   mkdir -p /home/ubuntu/.kube
   sudo cp -i /etc/kubernetes/admin.conf /home/ubuntu/.kube/config
   sudo chown ubuntu:ubuntu /home/ubuntu/.kube/config
-  #kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
   #kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
   #sleep 2m
   # Indicate completion of bootstrapping on this node
   touch /home/ubuntu/done
   EOF
+
 }
 
 resource "aws_instance" "workers" {
@@ -230,11 +230,19 @@ resource "null_resource" "wait_for_bootstrap_to_finish" {
     while true; do
       sleep 2
       ! ssh ubuntu@${aws_eip.master.public_ip} [[ -f /home/ubuntu/done ]] >/dev/null && continue
+      break
+    done
+
+    ssh ubuntu@${aws_eip.master.public_ip} kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+
+    while true; do
+      sleep 2
       %{for worker_public_ip in aws_instance.workers[*].public_ip~}
       ! ssh ubuntu@${worker_public_ip} [[ -f /home/ubuntu/done ]] >/dev/null && continue
       %{endfor~}
       break
     done
+
     EOF
   }
   triggers = {
