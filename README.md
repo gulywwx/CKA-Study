@@ -14,7 +14,7 @@ These are the exam objectives you review and understand in order to pass the tes
 
 
 
-### Cluster Architecture, Installation & Configuration (25%)
+### [Cluster Architecture, Installation & Configuration (25%)](https://github.com/gulywwx/CKA-Study/blob/main/01-cluster-architecture-installation-configuration.md)
 
 - Manage role based access control (RBAC).
 
