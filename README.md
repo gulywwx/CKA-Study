@@ -145,3 +145,24 @@ These are the exam objectives you review and understand in order to pass the tes
 - Troubleshoot networking.
 
     - [Debug Services](https://kubernetes.io/docs/tasks/debug-application-cluster/debug-service/)
+
+
+
+## Courses:
+
+- [Certified Kubernetes Administrator (CKA) - A Cloud Guru](https://learn.acloud.guru/course/certified-kubernetes-administrator/dashboard)
+
+- [Certified Kubernetes Administrator (CKA) Study Guide](https://learning.oreilly.com/library/view/certified-kubernetes-administrator/9781098107215/)
+
+- [Kubernetes Deep Dive - A Cloud Guru](https://learn.acloud.guru/course/kubernetes-deep-dive/overview)
+
+- [Kubernetes The Hard Way](https://github.com/kelseyhightower/kubernetes-the-hard-way)
+
+
+
+## Lab:
+
+
+## Tips:
+
+
