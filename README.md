@@ -183,9 +183,6 @@ terraform validate
 terraform plan -var-file=terraform.tfvars -out=terraform.tfout
 terraform apply -input=false -auto-approve=true -lock=true "terraform.tfout"
 
-# apply CNI
-ssh ubuntu@master_pub_ip
-kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
 ```
 ## Tips:
 
