@@ -186,4 +186,12 @@ terraform apply -input=false -auto-approve=true -lock=true "terraform.tfout"
 ```
 ## Tips:
 
+- https://github.com/alijahnas/CKA-practice-exercises
+
+- https://github.com/David-VTUK/CKA-StudyGuide
+
+
+
+## Other Resources:
+
 
