@@ -124,7 +124,7 @@ apt-get install -y kubelet kubeadm kubectl
 apt-mark hold kubelet kubeadm kubectl
 ```
   
-## Master Node:
+## Control Plane Node:
 
 Initialize the Cluster
   
@@ -199,22 +199,20 @@ curl -k https://localhost:6443/healthz?verbose
 
 <details><summary>Answer</summary>
 
-If held, unhold the kubeadm version
-
-```shell
-sudo apt-mark unhold kubeadm
-```
-
+## Master Node
+  
 Upgrade the `kubeadm` version:
 
 ```shell
-sudo apt-get install --only-upgrade kubeadm
+sudo apt-get update && sudo apt-get install -y --allow-change-held-packages kubeadm=1.22.2-00
+kubeadm version
+kubectl drain k8s-control --ignore-daemonsets  
 ```
 
 `plan` the upgrade:
 
 ```shell
-sudo kubeadm upgrade plan
+sudo kubeadm upgrade plan v1.22.2
 
 Components that must be upgraded manually after you have upgraded the control plane with 'kubeadm upgrade apply':
 COMPONENT   CURRENT       AVAILABLE
@@ -234,15 +232,56 @@ etcd                      3.4.9-1   3.4.13-0
 Upgrade the cluster
 
 ```shell
-kubeadm upgrade apply v1.20.2
+sudo kubeadm upgrade apply v1.22.2
 ```
 
 Upgrade Kubelet:
 
 ```shell
-sudo apt-get install --only-upgrade kubelet
+sudo apt-get update && \
+sudo apt-get install -y --allow-change-held-packages kubelet=1.22.2-00 kubectl=1.22.2-00
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+kubectl uncordon k8s-control  
 ```
 
+## Work Node
+  
+Run the following on the control plane node to drain worker node
+  
+```shell
+kubectl drain k8s-worker1 --ignore-daemonsets --force
+```
+  
+Upgrade the `kubeadm` version:
+
+```shell
+sudo apt-get update && sudo apt-get install -y --allow-change-held-packages kubeadm=1.22.2-00
+kubeadm version
+sudo kubeadm upgrade node
+```
+  
+Upgrade the work node:
+
+```shell
+sudo kubeadm upgrade node
+```
+  
+Upgrade Kubelet:
+
+```shell
+sudo apt-get update && \
+sudo apt-get install -y --allow-change-held-packages kubelet=1.22.2-00 kubectl=1.22.2-00
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+```
+  
+From the control plane node, uncordon worker node  
+
+```shell
+kubectl uncordon k8s-worker1
+```  
+  
 </details>
 
 # Exercise 5 - Implement etcd backup and restore
