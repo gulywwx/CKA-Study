@@ -190,6 +190,64 @@ kubectl uncordon k8s-worker1
   
 </details>
 
+
+# Exercise 3 - Implement etcd backup and restore
+
+1. Take a backup of etcd
+2. Verify the etcd backup has been successful
+3. Restore the backup back to the cluster
+
+<details><summary>Answer</summary>
+
+Look up the value for the key cluster.name in the etcd cluster
+
+```shell
+ETCDCTL_API=3 etcdctl get cluster.name \
+  --endpoints=https://10.0.1.101:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/server.crt \
+  --cert=/etc/kubernetes/pki/etcd/ca.crt \
+  --key=/etc/kubernetes/pki/etcd/ca.key
+```
+  
+  
+Take a snapshot of etcd:
+
+```shell
+ETCDCTL_API=3 etcdctl snapshot save etcd_backup.db \
+  --endpoints=https://10.0.1.101:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/server.crt \
+  --cert=/etc/kubernetes/pki/etcd/ca.crt \
+  --key=/etc/kubernetes/pki/etcd/ca.key 
+```
+  
+Verify the snapshot:
+
+```shell
+sudo ETCDCTL_API=3 etcdctl --write-out=table snapshot status etcd_backup.db
+```
+  
+Reset etcd by removing all existing etcd data
+  
+```shell
+sudo systemctl stop etcd
+sudo rm -rf /var/lib/etcd
+```  
+
+Perform a restore:
+
+```shell
+sudo ETCDCTL_API=3 etcdctl snapshot restore etcd_backup.db \
+  --initial-cluster etcd-restore=https://10.0.1.101:2380 \
+  --initial-advertise-peer-urls https://10.0.1.101:2380 \
+  --name etcd-restore \
+  --data-dir /var/lib/etcd  
+sudo chown -R etcd:etcd /var/lib/etcd
+sudo systemctl start etcd  
+```
+
+</details>
+
+
 # Exercise 1 - RBAC
 
 A third party application requires access to describe `job` objects that reside in a namespace called `rbac`. Perform the following:
@@ -286,31 +344,3 @@ curl -k https://localhost:6443/healthz?verbose
 
 </details>
 
-
-# Exercise 5 - Implement etcd backup and restore
-
-1. Take a backup of etcd
-2. Verify the etcd backup has been successful
-3. Restore the backup back to the cluster
-
-<details><summary>Answer</summary>
-
-Take a snapshot of etcd:
-
-```shell
-ETCDCTL_API=3 etcdctl snapshot save snapshot.db --cacert /etc/kubernetes/pki/etcd/server.crt --cert /etc/kubernetes/pki/etcd/ca.crt --key /etc/kubernetes/pki/etcd/ca.key
-```
-
-Verify the snapshot:
-
-```shell
-sudo ETCDCTL_API=3 etcdctl --write-out=table snapshot status snapshot.db
-```
-
-Perform a restore:
-
-```shell
-ETCDCTL_API=3 etcdctl snapshot restore snapshot.db
-```
-
-</details>
