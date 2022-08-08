@@ -3,7 +3,7 @@
 
 # Exercise 1 - Use Kubeadm to install a basic cluster
 
-1. On the master node, install kubeadm and stand up the control plane, using `10.244.0.0/16` as the pod network CIDR, and https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml as the CNI
+1. On the master node, install kubeadm and stand up the control plane, using `10.244.0.0/16` as the pod network CIDR, and https://docs.projectcalico.org/manifests/calico.yaml as the CNI
 2. On work nodes, install kubeadm and join it to the cluster as a worker node
 
 <details><summary>Answer</summary>
