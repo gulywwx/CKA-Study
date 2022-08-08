@@ -248,7 +248,7 @@ sudo systemctl start etcd
 </details>
 
 
-# Exercise 1 - RBAC
+# Exercise 4 - RBAC
 
 A third party application requires access to describe `job` objects that reside in a namespace called `rbac`. Perform the following:
 
@@ -312,7 +312,7 @@ subjects:
 </details>
 
 
-# Exercise 3 - Manage a highly-available Kubernetes cluster
+# Exercise 5 - Manage a highly-available Kubernetes cluster
 
 1. Using `etcdctl`, determine the health of the etcd cluster
 2. Using `etcdctl`, identify the list of members   
