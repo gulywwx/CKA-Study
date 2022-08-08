@@ -196,5 +196,5 @@ terraform apply -input=false -auto-approve=true -lock=true "terraform.tfout"
 
 - https://github.com/David-VTUK/CKA-StudyGuide
 
-https://github.com/bmuschko/cka-crash-course
+- https://github.com/bmuschko/cka-crash-course
 
