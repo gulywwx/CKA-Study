@@ -73,15 +73,25 @@ subjects:
 
 ## All Nodes:
 
+Create configuration file for containerd
+  
 ```shell
 cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf
 overlay
 br_netfilter
 EOF
-
+```
+  
+Load modules
+  
+```shell
 sudo modprobe overlay
 sudo modprobe br_netfilter
+```
   
+Set system configurations for Kubernetes networking
+  
+```shell  
 cat <<EOF | sudo tee /etc/sysctl.d/99-kubernetes-cri.conf
 net.bridge.bridge-nf-call-iptables = 1
 net.ipv4.ip_forward = 1
@@ -89,13 +99,21 @@ net.bridge.bridge-nf-call-ip6tables = 1
 EOF
   
 sudo sysctl --system
-
+```
+  
+Install containerd
+  
+```shell    
 sudo apt-get update && sudo apt-get install -y containerd
 sudo mkdir -p /etc/containerd
 sudo containerd config default | sudo tee /etc/containerd/config.toml
 sudo systemctl restart containerd
-sudo swapoff -a
+```
 
+Install kubeadm Packages  
+  
+```shell  
+sudo swapoff -a
 apt-get update && apt-get install -y apt-transport-https curl
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 cat <<EOF >/etc/apt/sources.list.d/kubernetes.list
@@ -108,23 +126,32 @@ apt-mark hold kubelet kubeadm kubectl
   
 ## Master Node:
 
-Turn this node into a master
-
+Initialize the Cluster
+  
 ```shell
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16
-...
-  mkdir -p $HOME/.kube
-  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-  sudo chown $(id -u):$(id -g) $HOME/.kube/config
-...
-kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
-...
-Note the join command, ie:
-kubeadm join 172.16.10.210:6443 --token 9tjntl.10plpxqy85g8a0ui \
-    --discovery-token-ca-cert-hash sha256:381165c9a9f19a123bd0fee36fe36d15e918062dcc94711ff5b286ee1f86b92b 
-```
-## Work Node
 
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+  
+Install the Calico Network Add-On  
+
+```shell  
+kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+```
+
+create the token and copy the kubeadm join command
+
+```shell  
+kubeadm token create --print-join-command
+```  
+  
+## Work Node
+  
+Join the Worker Nodes to the Cluster
+  
 ```shell
 kubeadm join 172.16.10.210:6443 --token 9tjntl.10plpxqy85g8a0ui \
     --discovery-token-ca-cert-hash sha256:381165c9a9f19a123bd0fee36fe36d15e918062dcc94711ff5b286ee1f86b92b 
