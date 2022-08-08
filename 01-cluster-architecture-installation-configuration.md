@@ -1,70 +1,7 @@
 # Lab Exercises for Cluster Architecture, Installation and Configuration
 
 
-# Exercise 1 - RBAC
-
-A third party application requires access to describe `job` objects that reside in a namespace called `rbac`. Perform the following:
-
-1. Create a namespace called `rbac`
-2. Create a service account called `job-inspector` for the `rbac` namespace
-3. Create a role that has rules to `get` and `list` job objects
-4. Create a rolebinding that binds the service account `job-inspector` to the role created in step 3
-5. Prove the `job-inspector` service account can "get" `job` objects but not `deployment` objects
-
-<details><summary>Answer - Imperative</summary>
-
-```shell
-kubectl create namespace rbac
-kubectl create sa job-inspector -n rbac
-kubectl create role job-inspector --verb=get --verb=list --resource=jobs -n rbac
-kubectl create rolebinding permit-job-inspector --role=job-inspector --serviceaccount=rbac:job-inspector -n rbac
-kubectl --as=system:serviceaccount:rbac:job-inspector auth can-i get job -n rbac 
-kubectl --as=system:serviceaccount:rbac:job-inspector auth can-i get deployment -n rbac
-```
-</details>
-
-
-<details><summary>Answer - Declarative</summary>
-
-```yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: rbac
----
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: job-inspector
-  namespace: rbac
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: job-inspector
-  namespace: rbac
-rules:
-  - apiGroups: ["batch"]
-    resources: ["jobs"]
-    verbs: ["get", "list"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: permit-job-inspector
-  namespace: rbac
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: job-inspector
-subjects:
-  - kind: ServiceAccount
-    name: job-inspector
-    namespace: rbac
-```
-</details>
-
-# Exercise 2 - Use Kubeadm to install a basic cluster
+# Exercise 1 - Use Kubeadm to install a basic cluster
 
 1. On the master node, install kubeadm and stand up the control plane, using `10.244.0.0/16` as the pod network CIDR, and https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml as the CNI
 2. On work nodes, install kubeadm and join it to the cluster as a worker node
@@ -161,39 +98,8 @@ Validate by running `kubectl get no` on the master node:
 
 </details>
 
-# Exercise 3 - Manage a highly-available Kubernetes cluster
 
-1. Using `etcdctl`, determine the health of the etcd cluster
-2. Using `etcdctl`, identify the list of members   
-3. On the master node, determine the health of the cluster by probing the API endpoint
-
-
-<details><summary>Answer</summary>
-
-```shell
-etcdctl cluster-health
-
-cluster is healthy
-member <id> is healthy
-member <id> is healthy
-member <id> is healthy
-
-etcdctl member list
-<id>: name=etcd1 peerURLs=http://<ip>:2380 clientURLs=<ip>:2379
-<id>: name=etcd0 peerURLs=http://<ip>:2380 clientURLs=<ip>:2379
-<id>: name=etcd2 peerURLs=http://<ip>:2380 clientURLs=<ip>:2379
-
-curl -k https://localhost:6443/healthz?verbose
-[+]ping ok
-[+]log ok
-[+]etcd ok
-[+]poststarthook/start-kube-apiserver-admission-initializer ok
-...
-```
-
-</details>
-
-#  Exercise 4 - Perform a version upgrade on a Kubernetes cluster using Kubeadm 
+# Exercise 2 - Perform a version upgrade on a Kubernetes cluster using Kubeadm 
 
 1. Using `kubeadm`, upgrade a cluster to the lastest version
 
@@ -283,6 +189,103 @@ kubectl uncordon k8s-worker1
 ```  
   
 </details>
+
+# Exercise 1 - RBAC
+
+A third party application requires access to describe `job` objects that reside in a namespace called `rbac`. Perform the following:
+
+1. Create a namespace called `rbac`
+2. Create a service account called `job-inspector` for the `rbac` namespace
+3. Create a role that has rules to `get` and `list` job objects
+4. Create a rolebinding that binds the service account `job-inspector` to the role created in step 3
+5. Prove the `job-inspector` service account can "get" `job` objects but not `deployment` objects
+
+<details><summary>Answer - Imperative</summary>
+
+```shell
+kubectl create namespace rbac
+kubectl create sa job-inspector -n rbac
+kubectl create role job-inspector --verb=get --verb=list --resource=jobs -n rbac
+kubectl create rolebinding permit-job-inspector --role=job-inspector --serviceaccount=rbac:job-inspector -n rbac
+kubectl --as=system:serviceaccount:rbac:job-inspector auth can-i get job -n rbac 
+kubectl --as=system:serviceaccount:rbac:job-inspector auth can-i get deployment -n rbac
+```
+</details>
+
+
+<details><summary>Answer - Declarative</summary>
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rbac
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: job-inspector
+  namespace: rbac
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: job-inspector
+  namespace: rbac
+rules:
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: permit-job-inspector
+  namespace: rbac
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: job-inspector
+subjects:
+  - kind: ServiceAccount
+    name: job-inspector
+    namespace: rbac
+```
+</details>
+
+
+# Exercise 3 - Manage a highly-available Kubernetes cluster
+
+1. Using `etcdctl`, determine the health of the etcd cluster
+2. Using `etcdctl`, identify the list of members   
+3. On the master node, determine the health of the cluster by probing the API endpoint
+
+
+<details><summary>Answer</summary>
+
+```shell
+etcdctl cluster-health
+
+cluster is healthy
+member <id> is healthy
+member <id> is healthy
+member <id> is healthy
+
+etcdctl member list
+<id>: name=etcd1 peerURLs=http://<ip>:2380 clientURLs=<ip>:2379
+<id>: name=etcd0 peerURLs=http://<ip>:2380 clientURLs=<ip>:2379
+<id>: name=etcd2 peerURLs=http://<ip>:2380 clientURLs=<ip>:2379
+
+curl -k https://localhost:6443/healthz?verbose
+[+]ping ok
+[+]log ok
+[+]etcd ok
+[+]poststarthook/start-kube-apiserver-admission-initializer ok
+...
+```
+
+</details>
+
 
 # Exercise 5 - Implement etcd backup and restore
 
