@@ -40,7 +40,7 @@ These are the exam objectives you review and understand in order to pass the tes
 
     - [perating etcd clusters for Kubernetes](https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/)
 
-### Workloads & Scheduling (15%)
+### [Workloads & Scheduling (15%)](https://github.com/gulywwx/CKA-Study/blob/main/02-workloads-and-scheduling.md)
 
 - Understand deployments and how to perform rolling update and rollbacks.
 
