@@ -186,9 +186,24 @@ terraform apply -input=false -auto-approve=true -lock=true "terraform.tfout"
 ```
 ## Tips:
 
+- Be familiar with the kubectl cheat sheet and the reference docs. 
 
+- sudo -i Gives you root privileges. Run this immediately.
 
+- Set autocomplete before starting by running source <(kubectl completion bash)
 
+- Always use YAML generators to get your YAML generated
+    - Generate pod yaml (kubectl run mypod --image=nginx:latest --labels type=web --dry-run=client -o yaml > mypod.yaml)
+    
+    - Generate deployment yaml (kubectl create deployment mydeployment --image=nginx:latest --dry-run=client -o yaml > mydeployment.yaml)
+
+    - Generate pod service (kubectl expose pod mypod --port=80  --name mypod-service --type=NodePort --dry-run=client -o yaml > mypod-service.yaml)
+
+    - Generate NodePort service (kubectl create service nodeport mypod --tcp=80:80 --node-port=30001 --dry-run=client -o yaml > mypod-service.yaml)
+    
+    - Generate Deployment service (kubectl expose deployment mydeployment --type=NodePort --port=8080 --name=mydeployment-service --dry-run=client -o yaml > mydeployment-service.yaml)
+
+    - Generate YAML from existing resources from the cluster and then edit as you need nor your work
 
 ## Other Resources:
 
@@ -198,3 +213,5 @@ terraform apply -input=false -auto-approve=true -lock=true "terraform.tfout"
 
 - https://github.com/bmuschko/cka-crash-course
 
+
+    
