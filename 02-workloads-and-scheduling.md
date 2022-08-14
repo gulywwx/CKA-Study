@@ -2,7 +2,7 @@
 # Lab Exercises for Workloads & Scheduling
 
 
-# Exercise 1 - Use ConfigMaps to configure applications
+# Exercise 1 - Use ConfigMaps/Secret to configure applications
 
 1. Create a configmap and secret
 2. Create a busybox pod. Configure this Pod so that the underlying container has the environment variable set to the value of this configmap and the environment variable set to the value of the secret
@@ -10,7 +10,7 @@
 
 <details><summary>Answer</summary>
 
-Create a ConfigMap my-configmap.yml:
+Create a ConfigMap my-configmap.yml
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -118,7 +118,53 @@ kubectl exec volume-pod -- ls /etc/config/secret
 kubectl exec volume-pod -- cat /etc/config/secret/secretkey1
 kubectl exec volume-pod -- cat /etc/config/secret/secretkey2
 ```   
+</details>
+
+# Exercise 2 - Building Self-Healing Containers in Kubernetes
   
+1. Set a Restart Policy to Restart the Container When It Is Down
+2. Create a Liveness Probe to Detect When the Application Has Crashed
   
+<details><summary>Answer</summary>
+Get the pod's YAML descriptor
+  
+```shell
+kubectl get pod beebox-shipping-data -o yaml > beebox-shipping-data.yml
+```     
+  
+Set the restartPolicy to Always  
+  
+```yaml
+beebox-shipping-data.yml
+---  
+spec:
+  ...
+  restartPolicy: Always
+  ...
+```      
+  
+Add a liveness probe
+```yaml
+beebox-shipping-data
+---  
+spec:
+  containers:
+  - ...
+    name: shipping-data
+    livenessProbe:
+      httpGet:
+        path: /
+        port: 8080
+      initialDelaySeconds: 5
+      periodSeconds: 5
+    ...
+```
+```shell
+kubectl delete pod beebox-shipping-data
+kubectl apply -f beebox-shipping-data.yml
+kubectl exec busybox -- curl <beebox-shipping-data_IP>:8080  
+```
   
 </details>
+  
+  
