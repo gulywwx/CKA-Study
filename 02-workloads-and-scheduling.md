@@ -120,7 +120,7 @@ kubectl exec volume-pod -- cat /etc/config/secret/secretkey2
 ```   
 </details>
 
-# Exercise 2 - Building Self-Healing Containers
+# Exercise 3 - Building Self-Healing Containers
   
 1. Set a Restart Policy to Restart the Container When It Is Down
 2. Create a Liveness Probe to Detect When the Application Has Crashed
