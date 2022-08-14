@@ -333,4 +333,181 @@ kubectl apply -f app-config-pv.yml
 ```
 </details>
 
+## 13 - PersistentVolumeClaim
+
+Create a new PersistentVolumeClaim:
+
+- Name: pv-volume
+- Class: csi-hostpath-sc
+- Capacity: 10Mi
+
+Create a new Pod which mounts the persistentVolumeClaim as a volume:
+
+- Name: web-server
+- Image: nginx
+- Mount path: /usr/share/nginx/html
+
+Configure the new Pod to have ReadWriteOnce access on the volume.
+
+Finally, using kubectl edit or kubectl patch expand the PersistentVolumeClaim to a capacity of 70Mi and record that change.
+
+<details><summary>Answer</summary>
+
+```yaml
+pv-volume-pvc.yaml
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pv-volume
+spec:
+  storageClassName: csi-hostpath-sc
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Mi
+```
+
+```yaml
+web-server-pod.yml 
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-server
+spec:
+  volumes:
+    - name: task-pv-storage
+      persistentVolumeClaim:
+        claimName: pv-volume
+  containers:
+    - name: web-server
+      image: nginx
+      ports:
+        - containerPort: 80
+          name: "http-server"
+      volumeMounts:
+        - mountPath: "/usr/share/nginx/html"
+          name: task-pv-storage
+  nodeSelector:
+    disk: ssd
+```
+
+```shell
+kubectl apply -f pv-volume-pvc.yaml
+kubectl get pvc
+kubectl apply -f web-server-pod.yml 
+kubectl edit pvc pv-volume --record
+kubectl patch pvc pv-volume  -p '{"spec":{"resources":{"requests":{"storage": "70Mi"}}}}' --record  
+```
+</details>
+  
+## 14 - monitoring pod log
+
+Monitor the logs of pod foobar and :
+
+- Extract log lines corresponding to error unable-to-access-website
+- Write them to /opt/KUTR00101/foobar
+
+<details><summary>Answer</summary>
+
+```
+kubectl logs foobar | grep unable-to-access-website > /opt/KUTR00101/foobar
+```
+</details>
+  
+## 15 - sidecar agent
+
+
+Without changing its existing containers, an existing Pod needs to be integrated into Kubernetes's build-in logging architecture(e.g kubectl logs).Adding a streaming sidecar container is a good and common way accomplish this requirement.
+Task
+
+Add a busybox sidecar container to the existing Pod legacy-app. The new sidecar container has to run the following command:
+
+```
+/bin/sh -c tail -n+1 -f /var/log/legacy-app.log
+```
+
+Use a volume mount named logs to make the file /var/log/legacy-app.log available to the sidecar container.
+
+TIPS
+Don't modify the existing container.
+Don't modify the path of the log file, both containers
+must access it at /var/log/legacy-app.log
+
+<details><summary>Answer</summary>
+  
+```shell
+kubectl get pod legacy-app -o yaml > legacy-app.yml
+cp egacy-app.yml legacy-app-new.yml
+vi legacy-app-new.yml
+```
+  
+```yaml
+legacy-app.yml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: legacy-app
+spec:
+  containers:
+  - name: count
+    image: busybox
+    args:
+    - /bin/sh
+    - -c
+    - >
+      i=0;
+      while true;
+      do
+        echo "$(date) INFO $i" >> /var/log/legacy-ap.log;
+        i=$((i+1));
+        sleep 1;
+      done     
+```
+  
+  
+  
+```yaml
+legacy-app-new.yml
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: legacy-app
+spec:
+  containers:
+  - name: count
+    image: busybox
+    args:
+    - /bin/sh
+    - -c
+    - >
+      i=0;
+      while true;
+      do
+        echo "$i: $(date)" >> /var/log/big-corp-app.log;
+        sleep 1;
+      done
+    volumeMounts:
+    - name: logs
+      mountPath: /var/log
+  - name: busybox
+    image: busybox
+    args: [/bin/sh, -c, 'tail -n+1 -f /var/log/legacy-app.log']
+    volumeMounts:
+    - name: logs
+      mountPath: /var/log
+  volumes:
+  - name: logs
+emptyDir: {}
+```
+
+```shell
+kubectl delete -f legacy-app.yml
+kubectl apply -f legacy-app-new.yml
+```
+</details>
   
