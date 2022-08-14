@@ -120,7 +120,7 @@ kubectl exec volume-pod -- cat /etc/config/secret/secretkey2
 ```   
 </details>
 
-# Exercise 3 - Building Self-Healing Containers
+# Exercise 2 - Building Self-Healing Containers
   
 1. Set a Restart Policy to Restart the Container When It Is Down
 2. Create a Liveness Probe to Detect When the Application Has Crashed
@@ -167,7 +167,7 @@ kubectl exec busybox -- curl <beebox-shipping-data_IP>:8080
   
 </details>
   
-# Exercise 2 - Using Init Containers
+# Exercise 3 - Using Init Containers
 1. Create a Sample Pod That Uses an Init Container to Delay Startup
 2. Test Your Setup by Creating the Service and Verifying the Pod Starts Up
   
