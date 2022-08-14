@@ -203,7 +203,7 @@ terraform apply -input=false -auto-approve=true -lock=true "terraform.tfout"
     
     - Generate Deployment service (kubectl expose deployment mydeployment --type=NodePort --port=8080 --name=mydeployment-service --dry-run=client -o yaml > mydeployment-service.yaml)
 
-    - Generate YAML from existing resources from the cluster and then edit as you need nor your work
+    - Generate YAML from existing resources from the cluster and then edit as you need nor your work (kubectl get deployment “deployment name” -n “namespace” -o yaml > “new-deployment.yaml)
 
 ## Other Resources:
 
