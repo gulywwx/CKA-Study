@@ -120,7 +120,7 @@ kubectl exec volume-pod -- cat /etc/config/secret/secretkey2
 ```   
 </details>
 
-# Exercise 2 - Building Self-Healing Containers in Kubernetes
+# Exercise 2 - Building Self-Healing Containers
   
 1. Set a Restart Policy to Restart the Container When It Is Down
 2. Create a Liveness Probe to Detect When the Application Has Crashed
@@ -167,4 +167,74 @@ kubectl exec busybox -- curl <beebox-shipping-data_IP>:8080
   
 </details>
   
+# Exercise 2 - Using Init Containers
+1. Create a Sample Pod That Uses an Init Container to Delay Startup
+2. Test Your Setup by Creating the Service and Verifying the Pod Starts Up
+  
+<details><summary>Answer</summary>
+  
+```yaml
+pod.yml
+---  
+apiVersion: v1
+kind: Pod
+metadata:
+  name: shipping-web
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.19.1
+```
+Add an init container (at the same level as containers in the file) to delay startup until the shipping-svc service is available 
+  
+```yaml  
+spec:
+  ...
+  initContainers:
+  - name: shipping-svc-check
+    image: busybox:1.27
+    command: ['sh', '-c', 'until nslookup shipping-svc; do echo waiting for shipping-svc; sleep 2; done']
+```
+```shell
+kubectl create -f pod.yml
+kubectl get pods  
+```  
+It should remain in the Init status until
+
+```yaml  
+shipping-svc.yml
+---  
+apiVersion: v1
+kind: Service
+metadata:
+  name: shipping-svc
+spec:
+  selector:
+    app: shipping-svc
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: shipping-backend
+  labels:
+   app: shipping-svc
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.19.1
+```
+  
+```shell  
+kubectl create -f shipping-svc.yml
+kubectl get pods  
+```  
+It should enter the Running status after about a minute  
+  
+</details>
+  
+
   
