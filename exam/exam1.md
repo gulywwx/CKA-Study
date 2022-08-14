@@ -419,7 +419,6 @@ kubectl logs foobar | grep unable-to-access-website > /opt/KUTR00101/foobar
   
 ## 15 - sidecar agent
 
-
 Without changing its existing containers, an existing Pod needs to be integrated into Kubernetes's build-in logging architecture(e.g kubectl logs).Adding a streaming sidecar container is a good and common way accomplish this requirement.
 Task
 
@@ -511,3 +510,38 @@ kubectl apply -f legacy-app-new.yml
 ```
 </details>
   
+## 16 - monitoring pod metrics
+
+From the pod label **name=cpu-user**, find pods running high CPU workloads and write the name of the pod consuming most CPU to the file **/opt/KUTR00401/KUTR00401.txt** (which already exists.)
+
+<details><summary>Answer</summary>
+
+```shell
+kubectl top pod -l name=cpu-user -A
+    NAMAESPACE NAME        CPU   MEM
+    delault    cpu-user-1  45m   6Mi
+    delault    cpu-user-2  38m   6Mi
+    delault    cpu-user-3  35m   7Mi
+    delault    cpu-user-4  32m   10Mi
+```
+
+```
+echo 'cpu-user-1' >>/opt/KUTR00401/KUTR00401.txt
+```
+</details>
+
+## 17 - cluster troubleshooting – kubelet fault
+
+A Kubernetes worker node,named wk8s-node-0 is in state NotReady .
+Investigate why this is the case,and perform any appropriate steps to bring the node to a Ready state,ensuring that any changes are made permanent.
+
+<details><summary>Answer</summary>
+
+```shell
+ssh wk8s-node-0
+sudo -i  
+systemctl status kubelet 
+systemctl start kubelet
+systemctl enable kubelet 
+```
+</details>
