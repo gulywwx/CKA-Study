@@ -419,14 +419,7 @@ kubectl get pods
 # Exercise 7 - Managing Kubernetes Applications with Deployments
 1. Update the App to a New Version of the Code
 2. Scale the App to a Larger Number of Replicas
-  
-<details><summary>Answer</summary>  
-  
-Edit the beebox-web deployment
-```shell  
-kubectl edit deployment beebox-web
-```   
-  
+
 ```yaml  
 beebox-web.yml
 ---  
@@ -454,6 +447,15 @@ spec:
           protocol: TCP
       restartPolicy: Always
 ```     
+  
+<details><summary>Answer</summary>  
+  
+Edit the beebox-web deployment
+```shell  
+kubectl edit deployment beebox-web
+```   
+  
+
   
 Locate the Pod's container specification, and change the 1.0.1 image version tag to 1.0.2
 ```yaml  
@@ -487,13 +489,6 @@ kubectl get pods
 # Exercise 8 - Managing Rolling Updates with Deployments
 1. Update a deployment
 2. Roll back a deployment
-  
-<details><summary>Answer</summary>   
-  
-Edit the deployment spec, changing the image version to 1.19.2 
-```shell  
-kubectl edit deployment my-deployment
-``` 
 
 ```yaml  
 my-deployment.yml
@@ -519,7 +514,16 @@ spec:
         image: nginx:1.14.2
         ports:
         - containerPort: 80
+```   
+  
+<details><summary>Answer</summary>   
+  
+Edit the deployment spec, changing the image version to 1.19.2 
+```shell  
+kubectl edit deployment my-deployment
 ``` 
+
+
   
 ```yaml  
 my-deployment.yml
