@@ -171,8 +171,6 @@ kubectl exec busybox -- curl <beebox-shipping-data_IP>:8080
 1. Create a Sample Pod That Uses an Init Container to Delay Startup
 2. Test Your Setup by Creating the Service and Verifying the Pod Starts Up
   
-<details><summary>Answer</summary>
-  
 ```yaml
 pod.yml
 ---  
@@ -185,6 +183,10 @@ spec:
   - name: nginx
     image: nginx:1.19.1
 ```
+  
+<details><summary>Answer</summary>
+  
+
 Add an init container (at the same level as containers in the file) to delay startup until the shipping-svc service is available 
   
 ```yaml  
