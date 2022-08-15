@@ -237,4 +237,110 @@ It should enter the Running status after about a minute
 </details>
   
 
+# Exercise 4 - Assigning a Kubernetes Pod to a Specific Node
+1. Configure the `auth-gateway` Pod to Only Run on `k8s-worker2`
+2. Configure the `auth-data` Deployment's Replica Pods to Only Run on `k8s-worker2`
+  
+<details><summary>Answer</summary>
+
+Attach a label to k8s-worker2
+```shell  
+kubectl label nodes k8s-worker2 external-auth-services=true  
+```  
+
+```yaml  
+auth-gateway.yml
+---  
+apiVersion: v1
+kind: Pod
+metadata:
+  name: auth-gateway
+  namespace: beebox-auth
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.19.1
+    ports:
+    - containerPort: 80
+```  
+  
+Add a nodeSelector to the auth-gateway pod descriptor
+
+```yaml  
+auth-gateway.yml
+---  
+...
+
+spec:
+  nodeSelector:
+    external-auth-services: "true"
+
+  ...
+```    
+  
+Delete and re-create the pod
+```shell  
+kubectl delete pod auth-gateway -n beebox-auth
+kubectl create -f auth-gateway.yml
+```    
+  
+Verify the pod is scheduled on the k8s-worker2 node
+```shell  
+kubectl get pod auth-gateway -n beebox-auth -o wide
+```      
+  
+  
+```yaml  
+auth-data.yml
+---  
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-data
+  namespace: beebox-auth
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: auth-data
+  template:
+    metadata:
+      labels:
+        app: auth-data
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.19.1
+        ports:
+        - containerPort: 80
+```    
+
+Add a nodeSelector to the pod template in the deployment spec (it will be the second spec in the file)
+```yaml  
+auth-data.yml
+---  
+...
+
+spec:
+
+  ...
+
+  template:
+
+    ...
+
+    spec:
+      nodeSelector:
+        external-auth-services: "true"
+
+      ...
+```      
+  
+Update the deployment and verify the deployment's replicas are all running on k8s-worker2
+```shell  
+kubectl apply -f auth-data.yml
+kubectl get pods -n beebox-auth -o wide  
+```      
+  
+</details>
   
