@@ -344,3 +344,44 @@ kubectl get pods -n beebox-auth -o wide
   
 </details>
   
+# Exercise 5 - Using DaemonSets in Kubernetes
+1. Create a DaemonSet Specification YAML File
+2. Create the DaemonSet in the Cluster
+  
+<details><summary>Answer</summary>
+
+```yaml  
+daemonset.yml
+---  
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: beebox-cleanup
+spec:
+  selector:
+    matchLabels:
+      app: beebox-cleanup
+  template:
+    metadata:
+      labels:
+        app: beebox-cleanup
+    spec:
+      containers:
+      - name: busybox
+        image: busybox:1.27
+        command: ['sh', '-c', 'while true; do rm -rf /beebox-temp/*; sleep 60; done']
+        volumeMounts:
+        - name: beebox-tmp
+          mountPath: /beebox-temp
+      volumes:
+      - name: beebox-tmp
+        hostPath:
+          path: /etc/beebox/tmp
+```       
+  
+Create the DaemonSet in the cluster, and verify a DaemonSet pod is running on each worker node
+```shell  
+kubectl apply -f daemonset.yml
+kubectl get pods -o wide  
+```   
+</details>
