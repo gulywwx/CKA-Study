@@ -240,13 +240,6 @@ It should enter the Running status after about a minute
 # Exercise 4 - Assigning a Kubernetes Pod to a Specific Node
 1. Configure the `auth-gateway` Pod to Only Run on `k8s-worker2`
 2. Configure the `auth-data` Deployment's Replica Pods to Only Run on `k8s-worker2`
-  
-<details><summary>Answer</summary>
-
-Attach a label to k8s-worker2
-```shell  
-kubectl label nodes k8s-worker2 external-auth-services=true  
-```  
 
 ```yaml  
 auth-gateway.yml
@@ -263,32 +256,6 @@ spec:
     ports:
     - containerPort: 80
 ```  
-  
-Add a nodeSelector to the auth-gateway pod descriptor
-
-```yaml  
-auth-gateway.yml
----  
-...
-
-spec:
-  nodeSelector:
-    external-auth-services: "true"
-
-  ...
-```    
-  
-Delete and re-create the pod
-```shell  
-kubectl delete pod auth-gateway -n beebox-auth
-kubectl create -f auth-gateway.yml
-```    
-  
-Verify the pod is scheduled on the k8s-worker2 node
-```shell  
-kubectl get pod auth-gateway -n beebox-auth -o wide
-```      
-  
   
 ```yaml  
 auth-data.yml
@@ -314,6 +281,38 @@ spec:
         ports:
         - containerPort: 80
 ```    
+  
+<details><summary>Answer</summary>
+
+Attach a label to k8s-worker2
+```shell  
+kubectl label nodes k8s-worker2 external-auth-services=true  
+```  
+  
+Add a nodeSelector to the auth-gateway pod descriptor
+
+```yaml  
+auth-gateway.yml
+---  
+...
+
+spec:
+  nodeSelector:
+    external-auth-services: "true"
+
+  ...
+```    
+  
+Delete and re-create the pod
+```shell  
+kubectl delete pod auth-gateway -n beebox-auth
+kubectl create -f auth-gateway.yml
+```    
+  
+Verify the pod is scheduled on the k8s-worker2 node
+```shell  
+kubectl get pod auth-gateway -n beebox-auth -o wide
+```        
 
 Add a nodeSelector to the pod template in the deployment spec (it will be the second spec in the file)
 ```yaml  
