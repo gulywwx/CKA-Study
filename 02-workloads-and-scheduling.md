@@ -494,6 +494,32 @@ Edit the deployment spec, changing the image version to 1.19.2
 ```shell  
 kubectl edit deployment my-deployment
 ``` 
+
+```yaml  
+my-deployment.yml
+---  
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+``` 
   
 ```yaml  
 my-deployment.yml
