@@ -501,7 +501,7 @@ my-deployment.yml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-deployment
+  name: my-deployment
   labels:
     app: nginx
 spec:
