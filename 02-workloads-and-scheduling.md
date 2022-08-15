@@ -344,7 +344,7 @@ kubectl get pods -n beebox-auth -o wide
   
 </details>
   
-# Exercise 5 - Using DaemonSets in Kubernetes
+# Exercise 5 - Using DaemonSets
 1. Create a DaemonSet Specification YAML File
 2. Create the DaemonSet in the Cluster
   
@@ -385,3 +385,34 @@ kubectl apply -f daemonset.yml
 kubectl get pods -o wide  
 ```   
 </details>
+
+# Exercise 6 - Using Static Pods
+1. Create a Manifest for a Static Pod
+2. Start Up the Static Pod
+  
+<details><summary>Answer</summary>  
+  
+```yaml  
+/etc/kubernetes/manifests/beebox-diagnostic.yml
+---  
+apiVersion: v1
+kind: Pod
+metadata:
+  name: beebox-diagnostic
+spec:
+  containers:
+  - name: beebox-diagnostic
+    image: acgorg/beebox-diagnostic:1
+    ports:
+    - containerPort: 80
+```         
+  
+Start Up the Static Pod
+```shell  
+sudo systemctl restart kubelet
+kubectl get pods
+kubectl delete pod beebox-diagnostic-k8s-worker1
+kubectl get pods  
+```     
+</details>
+  
