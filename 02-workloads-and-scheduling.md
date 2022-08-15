@@ -416,3 +416,125 @@ kubectl get pods
 ```     
 </details>
   
+# Exercise 7 - Managing Kubernetes Applications with Deployments
+1. Update the App to a New Version of the Code
+2. Scale the App to a Larger Number of Replicas
+  
+<details><summary>Answer</summary>  
+  
+Edit the beebox-web deployment
+```shell  
+kubectl edit deployment beebox-web
+```   
+  
+```yaml  
+beebox-web.yml
+---  
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: beebox-web
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: beebox-web
+  template:
+    metadata:
+      labels:
+        app: beebox-web
+    spec:
+      containers:
+      - image: acgorg/beebox-web:1.0.1
+        imagePullPolicy: IfNotPresent
+        name: web-server
+        ports:
+        - containerPort: 80
+          protocol: TCP
+      restartPolicy: Always
+```     
+  
+Locate the Pod's container specification, and change the 1.0.1 image version tag to 1.0.2
+```yaml  
+beebox-web.yml
+---  
+...
+
+spec:
+  containers:
+  - image: acgorg/beebox-web:1.0.2
+    imagePullPolicy: IfNotPresent
+    name: web-server
+
+...
+```      
+
+Check the status of your deployment to watch the rolling update occur
+```shell  
+kubectl rollout status deployment.v1.apps/beebox-web
+```     
+
+Scale the deployment to 5 replicas
+```shell  
+kubectl scale deployment.v1.apps/beebox-web --replicas=5
+kubectl get deployment beebox-web
+kubectl get pods  
+```     
+  
+</details>
+  
+# Exercise 8 - Managing Rolling Updates with Deployments
+1. Update a deployment
+2. Roll back a deployment
+  
+<details><summary>Answer</summary>   
+  
+Edit the deployment spec, changing the image version to 1.19.2 
+```shell  
+kubectl edit deployment my-deployment
+``` 
+  
+```yaml  
+my-deployment.yml
+---  
+...
+
+spec:
+  containers:
+  - image: nginx:1.19.2
+    name: nginx
+...
+```     
+  
+Check the rollout status, deployment status, and pods
+```shell  
+kubectl rollout status deployment.v1.apps/my-deployment
+kubectl get deployment my-deployment
+kubectl get pods
+```   
+  
+Perform another rollout, this time using the kubectl set image method. Intentionally use a bad image version
+```shell  
+kubectl set image deployment/my-deployment nginx=nginx:broken --record
+```   
+  
+Check the rollout status again. You will see the rollout unable to succeed due to a failed image pull
+```shell  
+kubectl rollout status deployment.v1.apps/my-deployment
+kubectl get pods
+```   
+
+Check the rollout history
+```shell  
+kubectl rollout history deployment.v1.apps/my-deployment
+```  
+  
+Roll back to an earlier working version with one of the following methods
+```shell  
+kubectl rollout undo deployment.v1.apps/my-deployment
+kubectl rollout undo deployment.v1.apps/my-deployment --to-revision=<last working revision>  
+```   
+  
+</details>
+  
