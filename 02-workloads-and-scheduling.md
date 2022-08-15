@@ -125,6 +125,7 @@ kubectl exec volume-pod -- cat /etc/config/secret/secretkey2
 1. Set a Restart Policy to Restart the Container When It Is Down
 2. Create a Liveness Probe to Detect When the Application Has Crashed
   
+  
 <details><summary>Answer</summary>
 Get the pod's YAML descriptor
   
