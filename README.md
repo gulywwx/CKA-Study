@@ -72,7 +72,7 @@ These are the exam objectives you review and understand in order to pass the tes
 
     - [Manage Kubernetes Objects](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/)
 
-### Services & Networking (20%)
+### [Services & Networking (20%)](https://github.com/gulywwx/CKA-Study/blob/main/03-services-and-networking.md)
 
 - Understand host networking configuration on the cluster nodes.
 
