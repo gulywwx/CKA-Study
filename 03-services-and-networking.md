@@ -236,4 +236,36 @@ curl http://<PUBLIC_IP_ADDRESS>:30080
   
 </details>
   
+# Exercise 4 - Using Kubernetes Services with DNS
+
+1. Perform an Nslookup for a Service in the Same Namespace
+2. Perform an Nslookup for a Service in a Different Namespace
+
+<details><summary>Answer</summary>  
   
+Start using the busybox Pod in the web namespace to perform an nslookup on the web-frontend Service by entering
+  
+```shell
+kubectl exec -n web busybox -- nslookup web-frontend
+```  
+  
+Look up the same Service using the fully qualified domain name by entering
+
+```shell
+kubectl exec -n web busybox -- nslookup web-frontend.web.svc.cluster.local
+```        
+  
+Use the busybox Pod in the web namespace to perform an nslookup on the user-db Service in the data namespace, while only utilizing the short Service name, by entering. This first request is supposed to result in an error message
+  
+```shell
+kubectl exec -n web busybox -- nslookup user-db
+```    
+  
+Perform the same lookup using the fully qualified domain name by entering
+  
+```shell
+kubectl exec -n web busybox -- nslookup user-db.data.svc.cluster.local
+```      
+  
+  
+</details>
