@@ -168,3 +168,72 @@ ingress:
 Attempt to communicate with the Pod again. This time, it should work!
 </details>
   
+  
+# Exercise 3 - Exposing Kubernetes Pods Using Services
+
+1. Expose the Pods from the User-db Deployment as an Internal Service
+2. Expose the Pods from the Web-frontend Deployment as an External Service
+
+<details><summary>Answer</summary>
+  
+Examine the properties of the user-db deployment by using kubectl get deployment user-db -o yaml
+
+In the deployment properties, find the spec and look for the Pod template, paying particular attention to the labels, especially the label app: user-db.
+  
+Take note of which port(s) are exposed.
+  
+Start creating a Service that will expose its Pods to other components within the cluster by using vi user-db-svc.yml
+  
+```yaml
+user-db-svc.yml
+---  
+apiVersion: v1 
+kind: Service 
+metadata: 
+  name: user-db-svc 
+spec: 
+  type: ClusterIP 
+  selector: 
+    app: user-db 
+  ports: 
+  - protocol: TCP 
+    port: 80 
+    targetPort: 80
+```      
+```shell
+kubectl create -f user-db-svc.yml
+kubectl exec busybox -- curl user-db-svc  
+```    
+  
+Now, examine the properties of the frontend deployment by using kubectl get deployment web-frontend -o yaml
+  
+Check the labels applied to the Pod template. You should see the label app=web-frontend. Take note of which port(s) are exposed
+  
+Start creating a Service that will expose its Pods on port 30080 of each cluster node by using vi web-frontend-svc.yml  
+  
+```yaml
+web-frontend-svc.yml
+---  
+apiVersion: v1 
+kind: Service 
+metadata: 
+  name: web-frontend-svc 
+spec: 
+  type: NodePort 
+  selector: 
+    app: web-frontend 
+  ports: 
+  - protocol: TCP 
+    port: 80 
+    targetPort: 80 
+    nodePort: 30080
+```      
+```shell
+kubectl create -f web-frontend-svc.yml
+curl http://<PUBLIC_IP_ADDRESS>:30080
+```    
+  
+  
+</details>
+  
+  
