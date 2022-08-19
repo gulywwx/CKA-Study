@@ -269,3 +269,68 @@ kubectl exec -n web busybox -- nslookup user-db.data.svc.cluster.local
   
   
 </details>
+
+# Exercise 5 - Using Kubernetes Ingress
+
+1. Create a Service to Expose the web-auth Deployment
+2. Create an Ingress That Maps to the New Service
+
+<details><summary>Answer</summary>  
+  
+Check out the deployment. Note the web-auth label on our Pods. We'll use this label to select these Pods using our Service.
+
+Create a web-auth-svc.yml file
+  
+```yaml
+web-auth-svc.yml
+---  
+ apiVersion: v1
+ kind: Service
+ metadata:
+   name: web-auth-svc
+ spec:
+   type: ClusterIP
+   selector:
+     app: web-auth
+   ports:
+     - name: http
+       protocol: TCP
+       port: 80
+       targetPort: 80
+```    
+```shell
+kubectl create -f web-auth-svc.yml
+```        
+  
+Create a web-auth-ingress.yml file
+  
+```yaml
+web-auth-ingress.yml
+---  
+apiVersion: networking.k8s.io/v1
+ kind: Ingress
+ metadata:
+   name: web-auth-ingress
+ spec:
+   rules:
+   - http:
+       paths:
+       - path: /auth
+         pathType: Prefix
+         backend:
+           service:
+             name: web-auth-svc
+             port:
+               number: 80
+```    
+```shell
+kubectl create -f web-auth-ingress.yml
+```          
+  
+Check the status of the Ingress
+  
+```shell
+kubectl describe ingress web-auth-ingress
+```   
+</details>
+  
