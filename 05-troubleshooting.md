@@ -42,3 +42,44 @@ sudo systemctl start kubelet
 ```    
 Check if kubelet is active by using sudo systemctl status kubelet, and note if the service is listed as active (running)  
 </details>   
+
+# Exercise 2 - Troubleshooting a Broken Kubernetes Application
+
+1. Identify What is Wrong with the Application
+2. Fix the Problem
+
+<details><summary>Answer</summary>  
+  
+Identify What is Wrong with the Application
+  
+```shell  
+kubectl get deployment -n web web-consumer
+kubectl describe deployment -n web web-consumer
+kubectl get pods -n web
+kubectl describe pod -n web <POD_NAME>
+kubectl logs -n web <POD_NAME> -c busybox
+kubectl get pod -n web <POD_NAME> -o yaml  
+```      
+Determine which command is causing the errors (in this case, the while true; do curl auth-db; sleep 5; done command)
+  
+Fix the Problem
+  
+```shell  
+kubectl get svc -n web auth-db
+kubectl get namespaces 
+kubectl get svc -n data
+kubectl edit deployment -n web web-consumer  
+```   
+  
+Change the command to while true; do curl auth-db.data.svc.cluster.local; sleep 5; done to give the fully qualified domain name of that service. This will allow the web-consumer deployment's Pods to communicate with the service successfully.
+
+```shell  
+kubectl logs -n web <POD-NAME> -c busybox
+```     
+  
+  
+  
+  
+  
+</details>   
+  
