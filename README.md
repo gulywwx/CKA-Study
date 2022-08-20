@@ -100,7 +100,7 @@ These are the exam objectives you review and understand in order to pass the tes
     - [Network Plugins](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/)
 
 
-### Storage (10%)
+### [Storage (10%)](https://github.com/gulywwx/CKA-Study/blob/main/04-storage.md)
 
 - Understand storage classes, persistent volumes.
 
