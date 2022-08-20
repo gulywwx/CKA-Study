@@ -77,8 +77,73 @@ Change the command to while true; do curl auth-db.data.svc.cluster.local; sleep 
 kubectl logs -n web <POD-NAME> -c busybox
 ```     
   
+</details>   
   
+# Exercise 3 - Troubleshooting k8s Network Issues
+
+1. Using nicolaka/netshoot image
+
+<details><summary>Answer</summary>  
   
+Create a simple Nginx Pod to use for testing, as well as a service to expose it
+  
+```yaml
+nginx-netshoot.yml
+---  
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-netshoot
+  labels:
+    app: nginx-netshoot
+spec:
+  containers:
+  - name: nginx
+    image: nginx:1.19.1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-netshoot
+spec:
+  type: ClusterIP
+  selector:
+    app: nginx-netshoot
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+```      
+```shell
+kubectl apply -f nginx-netshoot.yml
+```      
+  
+Create a Pod running the netshoot image in a container  
+  
+```yaml
+netshoot.yml
+---  
+apiVersion: v1
+kind: Pod
+metadata:
+  name: netshoot
+spec:
+  containers:
+  - name: netshoot
+    image: nicolaka/netshoot
+    command: ['sh', '-c', 'while true; do sleep 5; done']
+```      
+```shell
+kubectl apply -f netshoot.yml
+```        
+  
+Open an interactive shell to the netshoot container
+```shell
+kubectl exec --stdin --tty netshoot -- /bin/sh
+curl svc-netshoot
+ping svc-netshoot
+nslookup svc-netshoot  
+```     
   
   
 </details>   
