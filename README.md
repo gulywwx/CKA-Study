@@ -119,7 +119,7 @@ These are the exam objectives you review and understand in order to pass the tes
 
     - [Configure a Pod to Use a PersistentVolume for Storage](https://kubernetes.io/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolume)
 
-### Troubleshooting (30%)
+### [Troubleshooting (30%)](https://github.com/gulywwx/CKA-Study/blob/main/05-troubleshooting.md)
 
 - Evaluate cluster and node logging.
 
