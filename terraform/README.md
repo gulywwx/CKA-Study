@@ -22,4 +22,8 @@ terraform validate
 terraform plan -var-file=terraform.tfvars -out=terraform.tfout
 terraform apply -input=false -auto-approve=true -lock=true "terraform.tfout"
 
+# Verify
+ssh ubuntu@<control-plane node public ip>
+kubectl get nodes
+
 ```
