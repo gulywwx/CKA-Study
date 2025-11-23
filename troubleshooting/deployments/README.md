@@ -135,6 +135,77 @@ kubectl -n joey set image deployment/rolling-update-test app=gulywwx/myapp:v1.0
 
 ---
 
+### Scenario 2: Rolling Update Failure - Readiness Probe Fails
+
+**Problem:** New version starts successfully but fails readiness probes, preventing rolling update completion.
+
+#### Setup
+
+Ensure v1.0 is deployed (from Scenario 1 resolution).
+
+#### Trigger the Problem
+
+```bash
+# Update to broken v2.0.2
+kubectl -n joey set image deployment/rolling-update-test app=gulywwx/myapp:v2.0.2
+```
+
+#### Symptoms
+
+```bash
+# Check pods
+kubectl -n joey get pods
+
+# Output shows:
+# - 0 old pods still running (v1.0)
+# - 4 new pod in 0/1 Ready state (v2.0.2)
+
+# Check rollout status
+kubectl -n joey rollout status deployment/rolling-update-test
+# Output: Waiting for deployment "rolling-update-test" rollout to finish...
+```
+
+#### Troubleshooting Steps
+
+1. **Check pod readiness**
+   ```bash
+   kubectl -n joey get pods
+   # Note the pod with 0/4 READY
+   ```
+
+2. **Describe the pod**
+   ```bash
+   POD_NAME=$(kubectl -n joey get pods | grep rolling-update-test | grep "0/1" | awk '{print $1}' | head -1)
+   
+   kubectl -n joey describe pod $POD_NAME
+   # Look for: Readiness probe failed: HTTP probe failed with statuscode: 500
+   ```
+
+3. **Check pod logs**
+   ```bash
+   kubectl -n joey logs $POD_NAME
+   ```
+
+4. **Check deployment conditions**
+   ```bash
+   kubectl -n joey describe deployment rolling-update-test
+   # Look for: Progressing - ReplicaSet has timed out progressing
+   ```
+
+#### Root Cause
+
+The new application version (v2.0.2) has a flaky health check endpoint that returns 500 errors 80% of the time, causing readiness probes to fail continuously.
+
+#### Resolution
+
+
+**Option 1: Check rollout history and rollback to specific revision**
+```bash
+kubectl -n joey rollout history deployment/rolling-update-test
+kubectl -n joey rollout undo deployment/rolling-update-test --to-revision=1
+```
+
+---
 
 ## Common Troubleshooting Commands
 
