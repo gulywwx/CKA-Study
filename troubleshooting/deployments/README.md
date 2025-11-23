@@ -207,6 +207,148 @@ kubectl -n joey rollout undo deployment/rolling-update-test --to-revision=1
 
 ---
 
+### Scenario 3: Insufficient Resources
+
+**Problem:** New pods cannot be scheduled due to insufficient cluster resources.
+
+#### Setup
+
+Update the deployment to request more resources:
+
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rolling-update-test
+  namespace: joey
+spec:
+  replicas: 4
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 4
+  selector:
+    matchLabels:
+      app: rolling-test
+  template:
+    metadata:
+      labels:
+        app: rolling-test
+    spec:
+      containers:
+      - name: app
+        image: gulywwx/myapp:v1.0
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+EOF
+```
+
+#### Symptoms
+
+```bash
+# Check pods
+kubectl -n joey get pods
+
+# Output shows:
+# - Some pods in Pending state
+# - Old pods may be terminating or running
+
+# Check events
+kubectl -n joey get events --sort-by='.lastTimestamp'
+# Shows: 0/3 nodes are available: 3 Insufficient memory
+```
+
+#### Troubleshooting Steps
+
+1. **Describe pending pods**
+   ```bash
+   POD_NAME=$(kubectl -n joey get pods | grep Pending | awk '{print $1}' | head -1)
+   
+   kubectl -n joey describe pod $POD_NAME
+   # Events show: FailedScheduling - Insufficient memory/cpu
+   ```
+
+2. **Check node resources**
+   ```bash
+   kubectl top nodes
+   kubectl describe nodes
+   # Look at Allocated resources section
+   ```
+
+3. **Check deployment events**
+   ```bash
+   kubectl -n joey describe deployment rolling-update-test
+   ```
+
+#### Root Cause
+
+The deployment requests more CPU/memory than available in the cluster, preventing new pods from being scheduled.
+
+#### Resolution
+
+**Option 1: Reduce resource requests**
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rolling-update-test
+  namespace: joey
+spec:
+  replicas: 4
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 4
+  selector:
+    matchLabels:
+      app: rolling-test
+  template:
+    metadata:
+      labels:
+        app: rolling-test
+    spec:
+      containers:
+      - name: app
+        image: gulywwx/myapp:v1.0
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+EOF
+```
+
+**Option 2: Add more nodes to cluster** (if applicable)
+
+---
+
 ## Common Troubleshooting Commands
 
 ### Check Deployment Status
