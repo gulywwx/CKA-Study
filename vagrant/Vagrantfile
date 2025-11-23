@@ -1,0 +1,52 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Configuration
+K8S_VERSION = "1.34"
+CONTROL_PLANE_IP = "192.168.56.10"
+WORKER_NODE_IPS = ["192.168.56.11", "192.168.56.12"]
+POD_NETWORK_CIDR = "192.168.0.0/16"  # Calico default
+
+Vagrant.configure("2") do |config|
+  # Base box configuration
+  config.vm.box = "ubuntu/jammy64"
+  config.vm.box_check_update = false
+
+  # Control Plane Node
+  config.vm.define "k8s-control" do |control|
+    control.vm.hostname = "k8s-control"
+    control.vm.network "private_network", ip: CONTROL_PLANE_IP
+    
+    control.vm.provider "virtualbox" do |vb|
+      vb.name = "k8s-control"
+      vb.memory = "2048"
+      vb.cpus = 2
+    end
+
+    control.vm.provision "shell", path: "scripts/common.sh",
+      env: { "K8S_VERSION" => K8S_VERSION }
+    control.vm.provision "shell", path: "scripts/control-plane.sh", 
+      env: {
+        "CONTROL_PLANE_IP" => CONTROL_PLANE_IP,
+        "POD_NETWORK_CIDR" => POD_NETWORK_CIDR
+      }
+  end
+
+  # Worker Nodes
+  (1..2).each do |i|
+    config.vm.define "k8s-worker-#{i}" do |worker|
+      worker.vm.hostname = "k8s-worker-#{i}"
+      worker.vm.network "private_network", ip: WORKER_NODE_IPS[i-1]
+      
+      worker.vm.provider "virtualbox" do |vb|
+        vb.name = "k8s-worker-#{i}"
+        vb.memory = "2048"
+        vb.cpus = 2
+      end
+
+      worker.vm.provision "shell", path: "scripts/common.sh",
+        env: { "K8S_VERSION" => K8S_VERSION }
+      worker.vm.provision "shell", path: "scripts/worker.sh"
+    end
+  end
+end
