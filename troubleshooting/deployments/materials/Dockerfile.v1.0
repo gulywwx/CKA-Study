@@ -1,9 +1,11 @@
+# Works perfectly
+
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy application code
-COPY app.py /app/
+# Copy application code for v1.0
+COPY app-v1.0.py /app/app.py
 
 # Install dependencies
 RUN pip install --no-cache-dir flask==3.0.0
