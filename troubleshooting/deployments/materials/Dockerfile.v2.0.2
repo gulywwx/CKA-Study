@@ -1,0 +1,17 @@
+# (health fails) → Starts but readiness probe returns 500
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy application code for v2.0
+COPY app-v2.0.2.py /app/app.py
+
+# Install dependencies
+RUN pip install --no-cache-dir flask==3.0.0
+
+# Expose port
+EXPOSE 8080
+
+# Run the application
+CMD ["python", "app.py"]
