@@ -349,6 +349,251 @@ EOF
 
 ---
 
+
+### Scenario 4: Pod Anti-Affinity Constraint Violation
+
+**Problem:** Deployment with pod anti-affinity rules cannot schedule all replicas because there aren't enough nodes to satisfy the constraint.
+
+#### Setup
+
+```bash
+# Deploy application with pod anti-affinity
+cat <<EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anti-affinity-test
+  namespace: joey
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: anti-affinity-app
+  template:
+    metadata:
+      labels:
+        app: anti-affinity-app
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - anti-affinity-app
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: app
+        image: nginx:alpine
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+EOF
+```
+
+#### Symptoms
+
+```bash
+# Check pods
+kubectl -n joey get pods -o wide
+
+# Output shows:
+# - 2 pods running on different nodes
+# - 1 pod stuck in Pending state
+
+# Example output:
+# NAME                                  READY   STATUS    NODE
+# anti-affinity-test-abc123            1/1     Running   worker-1
+# anti-affinity-test-def456            1/1     Running   worker-2
+# anti-affinity-test-ghi789            0/1     Pending   <none>
+```
+
+#### Troubleshooting Steps
+
+1. **Check pod status and distribution**
+   ```bash
+   kubectl -n joey get pods -o wide
+   # Notice pods are on different nodes, one is Pending
+   ```
+
+2. **Check number of available nodes**
+   ```bash
+   kubectl get nodes
+   # Should show only 2 worker nodes available
+   ```
+
+3. **Describe the pending pod**
+   ```bash
+   POD_NAME=$(kubectl -n joey get pods | grep Pending | awk '{print $1}' | head -1)
+   
+   kubectl -n joey describe pod $POD_NAME
+   ```
+   
+   **Expected events:**
+   ```
+   Events:
+     Type     Reason            Message
+     ----     ------            -------
+     Warning  FailedScheduling  0/2 nodes are available: 2 node(s) didn't match pod anti-affinity rules.
+   ```
+
+4. **Check deployment configuration**
+   ```bash
+   kubectl -n joey get deployment anti-affinity-test -o yaml | grep -A 10 affinity
+   # Shows the podAntiAffinity rule with requiredDuringScheduling
+   ```
+
+5. **Check scheduler events**
+   ```bash
+   kubectl -n joey get events --sort-by='.lastTimestamp' | grep -i schedule
+   # Shows repeated FailedScheduling events
+   ```
+
+#### Root Cause
+
+The deployment has `podAntiAffinity` with `requiredDuringSchedulingIgnoredDuringExecution`, which enforces that **no two pods with the same label can run on the same node** (based on `topologyKey: kubernetes.io/hostname`).
+
+With only **2 worker nodes** available and **3 replicas** requested:
+- Pod 1 schedules on worker-1 ✅
+- Pod 2 schedules on worker-2 ✅
+- Pod 3 cannot schedule (both nodes already have a pod) ❌
+
+The anti-affinity rule is **hard** (required), so the scheduler will never place the third pod, leaving it in Pending state indefinitely.
+
+#### Resolution
+
+**Option 1: Reduce replicas to match node count**
+```bash
+kubectl -n joey scale deployment anti-affinity-test --replicas=2
+
+# Verify
+kubectl -n joey get pods -o wide
+```
+
+**Option 2: Add more worker nodes to the cluster**
+
+If using Minikube:
+```bash
+# Check current nodes
+minikube node list
+
+# Add a new node
+minikube node add
+
+# Verify
+kubectl get nodes
+```
+
+If using a cloud provider, scale up your node pool to have at least 3 worker nodes.
+
+**Option 3: Change to preferredDuringScheduling (soft anti-affinity)**
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anti-affinity-test
+  namespace: joey
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: anti-affinity-app
+  template:
+    metadata:
+      labels:
+        app: anti-affinity-app
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - anti-affinity-app
+              topologyKey: kubernetes.io/hostname
+      containers:
+      - name: app
+        image: gulywwx/myapp:v1.0
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+EOF
+
+# With preferred (soft) anti-affinity:
+# - Scheduler tries to spread pods across nodes
+# - If not possible, it will place multiple pods on same node
+# - All 3 pods will eventually run (2 on one node, 1 on another)
+```
+
+**Option 4: Remove anti-affinity constraint**
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anti-affinity-test
+  namespace: joey
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: anti-affinity-app
+  template:
+    metadata:
+      labels:
+        app: anti-affinity-app
+    spec:
+      containers:
+      - name: app
+        image: gulywwx/myapp:v1.0
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+EOF
+```
+
+#### Verification
+
+After applying a solution, verify all pods are running:
+
+```bash
+# Check pod status
+kubectl -n joey get pods -o wide
+
+# All pods should be Running
+# Distribution depends on which solution you chose:
+# - Option 1: 2 pods on 2 different nodes
+# - Option 2: 3 pods on 3 different nodes
+# - Option 3: 3 pods (likely 2 on one node, 1 on another)
+# - Option 4: 3 pods (scheduler decides distribution)
+```
+
+#### Cleanup
+
+```bash
+kubectl -n joey delete deployment anti-affinity-test
+```
+
+
+---
+
+
 ## Common Troubleshooting Commands
 
 ### Check Deployment Status
