@@ -25,10 +25,40 @@ EOF
 
 sudo sysctl --system
 
-# Install containerd
+# Install prerequisites
 sudo apt-get update
-sudo apt-get install -y ca-certificates curl gnupg lsb-release jq
+sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release jq
 
+# Install bash-completion and ensure kubectl completion is enabled for vagrant & root
+sudo apt-get install -y bash-completion
+
+# Helper function: add a line to a file if it doesn't already exist
+ensure_contains() {
+  local file="$1"; shift
+  local line="$*"
+  sudo touch "$file"
+  if ! sudo grep -Fxq "$line" "$file"; then
+    echo "$line" | sudo tee -a "$file" > /dev/null
+  fi
+}
+
+# kubectl completion lines
+KUBECTL_COMPLETION='source <(kubectl completion bash)'
+KUBECTL_ALIAS='alias k=kubectl'
+KUBECTL_COMPLETE='complete -F __start_kubectl k'
+
+# Apply for vagrant user
+ensure_contains /home/vagrant/.bashrc "$KUBECTL_COMPLETION"
+ensure_contains /home/vagrant/.bashrc "$KUBECTL_ALIAS"
+ensure_contains /home/vagrant/.bashrc "$KUBECTL_COMPLETE"
+sudo chown vagrant:vagrant /home/vagrant/.bashrc || true
+
+# Apply for root
+ensure_contains /root/.bashrc "$KUBECTL_COMPLETION"
+ensure_contains /root/.bashrc "$KUBECTL_ALIAS"
+ensure_contains /root/.bashrc "$KUBECTL_COMPLETE"
+
+# Install containerd
 sudo install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 sudo chmod a+r /etc/apt/keyrings/docker.gpg
