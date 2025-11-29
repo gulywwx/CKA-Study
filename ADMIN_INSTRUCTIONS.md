@@ -1,67 +1,116 @@
-# Instructions for Repository Admin: Force-Push to Complete History Rewrite
+# Instructions for Repository Admin: Remove Commit 97819b0 from Main Branch History
 
 ## Summary
 
-This PR contains a rewritten history of the `main` branch with commit `97819b0d6822409f81690d5810d11a8d59c85937` completely removed.
+This PR documents the steps to remove commit `97819b0d6822409f81690d5810d11a8d59c85937` from the `main` branch history using an interactive rebase and force-push.
 
-## What Was Done
+## Commit Details
 
-1. Performed an interactive rebase from the earliest ancestor of commit `97819b0` on the `main` branch
-2. Dropped/deleted commit `97819b0d6822409f81690d5810d11a8d59c85937` ("Update Lab section in README.md to list AWS and Vagrant approaches") from the rebase list
-3. Force-pushed the rewritten history to this PR branch
-
-## Changes Made by This Rewrite
-
-The commit `97819b0` made the following changes that will be **undone** after the force-push:
-- Modified `README.md`: Removed 206 lines and added 20 lines
-
-After the force-push, the `main` branch will point to commit `f4e3dec` ("Update README.md") instead of `97819b0`.
+- **Commit SHA**: `97819b0d6822409f81690d5810d11a8d59c85937`
+- **Commit Message**: "Update Lab section in README.md to list AWS and Vagrant approaches"
+- **Parent Commit**: `f4e3dec` ("Update README.md")
+- **Changes**: Modified `README.md` - removed 206 lines and added 20 lines
 
 ## Admin Steps to Complete the History Rewrite
 
-**⚠️ WARNING: This operation rewrites history and requires force-push. Make sure all team members are aware.**
+**⚠️ WARNING: This operation rewrites history and requires force-push. Make sure all team members are aware before proceeding.**
 
-1. **Verify the rewritten history**:
-   ```bash
-   git fetch origin copilot/remove-commit-97819b0
-   git log --oneline origin/copilot/remove-commit-97819b0
-   ```
+### Step 1: Clone and Set Up
 
-2. **Ensure the commit `97819b0` is NOT in the history**:
-   ```bash
-   git log --oneline origin/copilot/remove-commit-97819b0 | grep 97819b0
-   # Should return nothing
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/gulywwx/CKA-Study.git
+cd CKA-Study
 
-3. **Force-push this branch to main** (requires admin privileges):
-   ```bash
-   git push origin copilot/remove-commit-97819b0:main --force
-   ```
+# Ensure you have the latest main branch
+git checkout main
+git pull origin main
+```
 
-   Or alternatively:
-   ```bash
-   git checkout main
-   git reset --hard origin/copilot/remove-commit-97819b0
-   git push origin main --force
-   ```
+### Step 2: Backup and Perform Interactive Rebase to Remove Commit 97819b0
 
-4. **Notify all team members** that they need to reset their local `main` branch:
-   ```bash
-   git fetch origin
-   git checkout main
-   git reset --hard origin/main
-   ```
+```bash
+# IMPORTANT: Create a backup branch first
+git branch backup-main main
+
+# Start interactive rebase from the parent of 97819b0
+# Using 97819b0^ makes the intention clear: rebase starting from the commit's parent
+git rebase -i 97819b0^
+
+# In the editor that opens, find the line:
+#   pick 97819b0 Update Lab section in README.md to list AWS and Vagrant approaches
+#
+# Delete this entire line (or change "pick" to "drop")
+# Save and close the editor
+```
+
+**Alternative (Non-interactive) Method:**
+```bash
+# Automatically drop the commit using sed (matches only lines starting with 'pick 97819b0')
+GIT_SEQUENCE_EDITOR="sed -i '/^pick 97819b0/d'" git rebase -i 97819b0^
+```
+
+### Step 3: Verify the Rebase Succeeded
+
+```bash
+# Verify that 97819b0 is NOT in the history
+git log --oneline | grep 97819b0
+# Should return nothing (no output)
+
+# Verify HEAD is now at f4e3dec
+git log --oneline -1
+# Should show: f4e3dec Update README.md
+```
+
+### Step 4: Force-Push to Main (Requires Admin Privileges)
+
+```bash
+# Force-push the rewritten history to main
+git push origin main --force
+```
+
+### Step 5: Create a New Branch for Reference (Optional)
+
+```bash
+# Create a new branch at the rewritten state
+git checkout -b remove-97819b0-main
+git push origin remove-97819b0-main
+```
+
+### Step 6: Notify Team Members
+
+All team members need to reset their local `main` branch:
+
+```bash
+git fetch origin
+git checkout main
+git reset --hard origin/main
+```
 
 ## Rollback (If Needed)
 
-If you need to rollback to the original history, you can restore the main branch to the original commit:
+If you need to restore the original history with commit 97819b0, use the backup branch created in Step 2:
+
+```bash
+git push origin backup-main:main --force
+```
+
+If the backup branch was not created, you can still restore using the specific commit:
+
 ```bash
 git push origin 97819b0d6822409f81690d5810d11a8d59c85937:main --force
 ```
 
 ## Verification After Force-Push
 
-After completing the force-push, verify that:
-1. The `main` branch HEAD is at `f4e3dec`
-2. Commit `97819b0` no longer appears in `git log main`
-3. The README.md file is in its previous state (before the changes made by 97819b0)
+After completing the force-push, verify:
+
+1. ✅ The `main` branch HEAD is at `f4e3dec`
+2. ✅ Commit `97819b0` no longer appears in `git log main`
+3. ✅ The README.md file is in its state before the changes made by 97819b0
+
+```bash
+# Verification commands
+git log main --oneline -5  # Should not contain 97819b0
+git show main:README.md | head -20  # Should show the older version of README.md
+```
