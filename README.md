@@ -163,7 +163,7 @@ These are the exam objectives you review and understand in order to pass the tes
 ## Lab:
 
 ### AWS
-To simplely setup 1 control plane and 2 work nodes ec2 environment using terrafrom on AWS.
+To simply setup 1 control plane and 2 work nodes ec2 environment using terraform on AWS.
 you will need a valid AWS account with administrative privileges (or at least is allowed to execute the actions in the Terraform code). Get Access Key ID and a Secret Access Key of the AWS admin account.
 
 
