@@ -161,8 +161,12 @@ These are the exam objectives you review and understand in order to pass the tes
 
 
 ## Lab:
+
+### AWS
 To simplely setup 1 control plane and 2 work nodes ec2 environment using terrafrom on AWS.
 you will need a valid AWS account with administrative privileges (or at least is allowed to execute the actions in the Terraform code). Get Access Key ID and a Secret Access Key of the AWS admin account.
+
+
 
 ```bash
 # To use your IAM credentials to authenticate the Terraform AWS provider, set two environment variables.
@@ -184,6 +188,14 @@ terraform plan -var-file=terraform.tfvars -out=terraform.tfout
 terraform apply -input=false -auto-approve=true -lock=true "terraform.tfout"
 
 ```
+
+### Vagrant
+
+```bash
+vagrant up
+```
+
+
 ## Tips:
 
 - Be familiar with the kubectl cheat sheet and the reference docs. 
