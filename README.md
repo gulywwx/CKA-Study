@@ -192,7 +192,32 @@ terraform apply -input=false -auto-approve=true -lock=true "terraform.tfout"
 ### Vagrant
 
 ```bash
+cd vagrant
 vagrant up
+```
+
+### Kind
+
+```bash
+brew install --cask docker
+open -a Docker  # Start Docker Desktop from Applications
+
+brew install kind kubectl
+cat <<EOF | kind create cluster --name k8s-cluster --config=-
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+- role: control-plane
+- role: worker
+- role: worker
+EOF
+
+kubectl config get-contexts
+kubectl config use-context kind-k8s-cluster
+kind get clusters
+kubectl get nodes
+
+kind delete cluster --name k8s-cluster
 ```
 
 
