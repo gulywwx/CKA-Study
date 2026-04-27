@@ -217,6 +217,9 @@ kubectl config use-context kind-k8s-cluster
 kind get clusters
 kubectl get nodes
 
+
+docker exec -it k8s-cluster-control-plane crictl images
+docker exec -it k8s-cluster-worker crictl images
 kind delete cluster --name k8s-cluster
 ```
 
